@@ -2,6 +2,7 @@ package com.tenny.networkdemo.network;
 
 import android.util.Log;
 
+import com.tenny.networkdemo.entiy.GPSEntity;
 import com.tenny.networkdemo.entiy.GPSResponse;
 
 import retrofit2.Call;
@@ -18,6 +19,12 @@ public class NetWorkDemo {
     public static final String TAG = "NetWorkDemo";
 
     private Retrofit retrofit;
+
+    private CallBack<GPSEntity> callBack;
+
+    public NetWorkDemo(CallBack<GPSEntity> callBack) {
+        this.callBack = callBack;
+    }
 
     private Retrofit getRetrofit() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -39,13 +46,27 @@ public class NetWorkDemo {
             @Override
             public void onResponse(Call<GPSResponse> call, Response<GPSResponse> response) {
                 Log.d(TAG, response.body().toString());
+                if (callBack != null) {
+                    if (response.body() != null && response.body().getGPS() != null) {
+                        callBack.success(response.body().getGPS());
+                    } else {
+                        callBack.failed("数据为空");
+                    }
+                }
             }
 
             @Override
             public void onFailure(Call<GPSResponse> call, Throwable t) {
                 Log.d(TAG, t.getMessage());
+                if (callBack != null) {
+                    callBack.failed(t.getMessage());
+                }
             }
         });
+    }
+
+    public void release() {
+        callBack = null;
     }
 
 }
